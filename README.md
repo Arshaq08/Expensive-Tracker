@@ -21,8 +21,8 @@ Data visualization and reporting are supported through **Tableau**.
 ## 🛠️ Tech Stack
 - **Backend**: Java, Spring Boot  
 - **Build Tool**: Maven  
-- **Database**: MySQL / PostgreSQL (your choice)  
-- **Frontend**: JSP / Thymeleaf (if used)  
+- **Database**: MySQL  
+- **Frontend**: JSP 
 - **Visualization**: Tableau  
 - **Reporting**: Apache POI  
 
