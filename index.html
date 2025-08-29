@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Tracker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background-color: #2563eb;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.4em;
+      color: #2563eb;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+
+    button {
+      background-color: #2563eb;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f5f9;
+    }
+
+    .latest-expenses {
+      margin-top: 15px;
+    }
+
+    .total {
+      font-weight: bold;
+      color: #2563eb;
+      margin-top: 15px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <header>Expense Tracker</header>
+
+  <div class="container">
+    <!-- Add Expense -->
+    <div class="card">
+      <h2>Add New Expense</h2>
+      <form id="expenseForm">
+        <input type="text" id="name" placeholder="Expense Name" required>
+        <input type="text" id="category" placeholder="Category" required>
+        <input type="number" id="amount" placeholder="Amount" required>
+        <button type="submit">Add Expense</button>
+      </form>
+    </div>
+
+    <!-- Filter + Expenses -->
+    <div class="card">
+      <h2>Expenses</h2>
+      <select id="filter">
+        <option value="all">All</option>
+        <option value="day">Today</option>
+        <option value="month">This Month</option>
+        <option value="year">This Year</option>
+      </select>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTable"></tbody>
+      </table>
+      <div class="total" id="totalAmount">Total: ₹0</div>
+    </div>
+
+    <!-- Latest 5 -->
+    <div class="card latest-expenses">
+      <h2>Latest 5 Expenses</h2>
+      <ul id="latestList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:8080/api/expenses";
+    const expenseForm = document.getElementById("expenseForm");
+    const expenseTable = document.getElementById("expenseTable");
+    const filter = document.getElementById("filter");
+    const totalAmount = document.getElementById("totalAmount");
+    const latestList = document.getElementById("latestList");
+
+    let expenses = [];
+
+    async function fetchExpenses() {
+      const res = await fetch(API_URL);
+      expenses = await res.json();
+      renderExpenses();
+    }
+
+    function renderExpenses() {
+      expenseTable.innerHTML = "";
+      let filtered = expenses;
+      const today = new Date();
+
+      if (filter.value === "day") {
+        filtered = expenses.filter(e => new Date(e.date).toDateString() === today.toDateString());
+      } else if (filter.value === "month") {
+        filtered = expenses.filter(e => {
+          const d = new Date(e.date);
+          return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+        });
+      } else if (filter.value === "year") {
+        filtered = expenses.filter(e => new Date(e.date).getFullYear() === today.getFullYear());
+      }
+
+      let total = 0;
+      filtered.forEach(exp => {
+        const row = `<tr>
+          <td>${exp.name}</td>
+          <td>${exp.category}</td>
+          <td>₹${exp.amount}</td>
+          <td>${new Date(exp.date).toLocaleDateString()}</td>
+        </tr>`;
+        expenseTable.innerHTML += row;
+        total += exp.amount;
+      });
+      totalAmount.textContent = `Total: ₹${total}`;
+
+      // Latest 5
+      latestList.innerHTML = "";
+      expenses.slice(-5).reverse().forEach(exp => {
+        const li = document.createElement("li");
+        li.textContent = `${exp.name} - ₹${exp.amount} (${exp.category})`;
+        latestList.appendChild(li);
+      });
+    }
+
+    expenseForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const newExp = {
+        name: document.getElementById("name").value,
+        category: document.getElementById("category").value,
+        amount: parseFloat(document.getElementById("amount").value)
+      };
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newExp)
+      });
+      expenseForm.reset();
+      fetchExpenses();
+    });
+
+    filter.addEventListener("change", renderExpenses);
+
+    fetchExpenses();
+  </script>
+</body>
+</html>
