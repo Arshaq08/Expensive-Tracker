@@ -29,3 +29,18 @@ Data visualization and reporting are supported through **Tableau**.
 ---
 
 ## 📂 Project Structure
+src/
+├── main/
+│ ├── java/com/example/expensetracker/
+│ │ ├── controller/ # REST Controllers (handle API requests)
+│ │ ├── model/ # Entity classes (User, Transaction, Category)
+│ │ ├── repository/ # Data access layer (Spring Data JPA Repositories)
+│ │ ├── service/ # Business logic (TransactionService, UserService)
+│ │ └── ExpenseTrackerApplication.java # Main entry point
+│ │
+│ ├── resources/
+│ │ ├── application.properties # Configurations (DB, ports, etc.)
+│ │ ├── static/ # CSS, JS, images
+│ │ └── templates/ # JSP/Thymeleaf views
+│
+└── test/java/... # Unit & integration tests
